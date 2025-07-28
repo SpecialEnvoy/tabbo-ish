@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Taboo (ish)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Space+Grotesk&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', sans-serif;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      user-select: none;
+    }
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 3rem;
+      margin-bottom: 2rem;
+      color: #fbbf24;
+      text-shadow: 0 0 10px #fbbf2444;
+      text-align: center;
+    }
+    .team-bar {
+      display: flex;
+      justify-content: space-between;
+      max-width: 600px;
+      width: 100%;
+      background: #334155;
+      padding: 1rem 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 25px #fbbf2455;
+      margin-bottom: 2.5rem;
+      user-select: none;
+      cursor: default;
+    }
+    .team {
+      flex: 1;
+      text-align: center;
+      padding: 1rem 0;
+      border-radius: 10px;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      margin: 0 0.5rem;
+      box-shadow: inset 0 0 8px #0f172a;
+      cursor: pointer;
+      user-select: none;
+    }
+    .team.active {
+      background: #fbbf24;
+      color: #1e293b;
+      box-shadow: 0 0 20px #fbbf24;
+      font-weight: 700;
+    }
+    .team .name {
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+    }
+    .team .score {
+      font-size: 2.8rem;
+      font-weight: 700;
+    }
+    .word-section {
+      background: #334155;
+      padding: 3rem 3rem 2rem;
+      border-radius: 25px;
+      box-shadow: 0 0 40px #fbbf2455;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      margin-bottom: 2rem;
+      user-select: none;
+      transition: box-shadow 0.3s ease;
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .main-word {
+      font-size: 4rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow:
+        0 0 15px #fbbf24,
+        0 0 30px #fbbf24;
+      margin-bottom: 1.2rem;
+    }
+    .forbidden-list {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.3rem;
+      color: #f87171;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      user-select: none;
+    }
+    .timer {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 3.2rem;
+      color: #fbbf24;
+      letter-spacing: 4px;
+      margin: 1rem 0 2rem;
+    }
+    .buttons {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 3rem;
+      user-select: none;
+    }
+    button {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 1.3rem;
+      padding: 1.1rem 3rem;
+      border: none;
+      border-radius: 45px;
+      cursor: pointer;
+      background: #fbbf24;
+      color: #1e293b;
+      box-shadow: 0 7px 18px #b45309cc;
+      transition: background-color 0.3s ease, transform 0.15s ease;
+      min-width: 140px;
+      text-align: center;
+      user-select: none;
+    }
+    button:hover:not(:disabled) {
+      background-color: #d97706;
+      transform: scale(1.1);
+    }
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+      transform: none;
+    }
+    @media (max-width: 480px) {
+      .main-word {
+        font-size: 2.8rem;
+      }
+      .forbidden-list {
+        font-size: 1.1rem;
+      }
+      .timer {
+        font-size: 2.4rem;
+      }
+      .team-bar {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem 1.5rem;
+        margin-bottom: 2rem;
+      }
+      .team {
+        margin: 0;
+      }
+      button {
+        min-width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>🚫 Taboo-ish</h1>
+
+  <div class="team-bar" role="region" aria-label="Team Scores">
+    <div class="team active" id="teamRed" tabindex="0" aria-live="polite" aria-pressed="true" role="button" aria-label="Team Red score. Click to select this team.">
+      <div class="name">🔴 Team Red</div>
+      <div class="score" id="scoreRed">0</div>
+    </div>
+    <div class="team" id="teamBlue" tabindex="0" aria-live="polite" aria-pressed="false" role="button" aria-label="Team Blue score. Click to select this team.">
+      <div class="name">🔵 Team Blue</div>
+      <div class="score" id="scoreBlue">0</div>
+    </div>
+  </div>
+
+  <section class="word-section" aria-live="polite" aria-atomic="true">
+    <div class="main-word" id="mainWord">Press “New Word” to start</div>
+    <div class="forbidden-list" id="forbiddenList">Forbidden clues: —</div>
+    <div class="timer" id="timerDisplay">00:45</div>
+  </section>
+
+  <div class="buttons">
+    <button id="newWordBtn" aria-label="Get new word and start timer">🎲 New Word</button>
+    <button id="correctBtn" aria-label="Add point to current team and switch turn" disabled>✅ Guessed!</button>
+    <button id="passBtn" aria-label="Skip current word and get a new one" disabled>⏭️ Pass</button>
+  </div>
+
+  <script>
+    const wordPairs = [
+      { main: "Eiffel Tower", forbidden: ["Paris", "France", "Landmark", "Iron", "Tower"] },
+      { main: "Barack Obama", forbidden: ["President", "USA", "44th", "Michelle", "Democrat"] },
+      { main: "Lasagna", forbidden: ["Pasta", "Cheese", "Italian", "Sauce", "Layers"] },
+      { main: "Tesla", forbidden: ["Electric", "Car", "Elon Musk", "Battery", "Autopilot"] },
+      { main: "Golden Gate Bridge", forbidden: ["San Francisco", "Bridge", "Red", "Bay", "Landmark"] },
+      { main: "Leonardo DiCaprio", forbidden: ["Actor", "Titanic", "Oscar", "Hollywood", "Leo"] },
+      { main: "Chocolate Cake", forbidden: ["Dessert", "Sweet", "Frosting", "Birthday", "Bake"] },
+      { main: "Mount Rushmore", forbidden: ["Faces", "Presidents", "Monument", "South Dakota", "Carved"] },
+      { main: "Taylor Swift", forbidden: ["Singer", "Country", "Pop", "Red", "Album"] },
+      { main: "J.K. Rowling", forbidden: ["Harry Potter", "Author", "Books", "Wizard", "Magic"] },
+      { main: "New York City", forbidden: ["Big Apple", "NYC", "Times Square", "Manhattan", "Skyscraper"] },
+      { main: "Marilyn Monroe", forbidden: ["Actress", "Blonde", "Hollywood", "Icon", "1950s"] },
+      { main: "Verden", forbidden: ["Abbotts", "Vivians", "School", "Family", "Grandma"] },
+      { main: "Bill Gates", forbidden: ["Microsoft", "Rich", "Windows", "Philanthropy", "Tech"] },
+      { main: "Venus", forbidden: ["Planet", "Second", "Solar System", "Roman", "Goddess"] },
+      { main: "Statue of Liberty", forbidden: ["New York", "Freedom", "Island", "Torch", "USA"] },
+      { main: "Elvis Presley", forbidden: ["King", "Rock", "Roll", "Graceland", "Singer"] },
+      { main: "Pineapple Pizza", forbidden: ["Hawaiian", "Toppings", "Cheese", "Sweet", "Controversy"] },
+      { main: "Neil Armstrong", forbidden: ["Moon", "Apollo 11", "Astronaut", "First", "NASA"] },
+      { main: "Kamala Harris", forbidden: ["Election", "Trump", "President", "2024", "Democrat"] },
+      { main: "Superman", forbidden: ["Hero", "Clark Kent", "Kryptonite", "Cape", "Fly"] },
+      { main: "Mount Everest", forbidden: ["Tallest", "Mountain", "Nepal", "Climb", "Peak"] },
+      { main: "Lady Gaga", forbidden: ["Singer", "Poker Face", "Pop", "Born This Way", "Fashion"] },
+      { main: "The Beatles", forbidden: ["Band", "Liverpool", "John Lennon", "Paul McCartney", "Rock"] },
+      { main: "Big Ben", forbidden: ["London", "Clock", "Tower", "Parliament", "Bell"] },
+      { main: "Sushi", forbidden: ["Rice", "Fish", "Japan", "Seaweed", "Raw"] },
+      { main: "Harry Potter", forbidden: ["Wizard", "Magic", "Hogwarts", "J.K. Rowling", "Spell"] },
+      { main: "Michael Jordan", forbidden: ["Basketball", "Chicago Bulls", "Air", "NBA", "MVP"] },
+      { main: "Chocolate Chip Cookie", forbidden: ["Dessert", "Bake", "Sweet", "Chips", "Dough"] },
+      { main: "Big Brother", forbidden: ["Julie", "Head of Household", "Veto", "Eviction", "*Houseguest Names*"] },
+      { main: "Spider-Man", forbidden: ["Hero", "Spider", "Web", "Peter Parker", "Marvel"] },
+      { main: "The Simpsons", forbidden: ["Cartoon", "Homer", "Springfield", "Yellow", "TV"] },
+      { main: "Van Gogh", forbidden: ["Painter", "Starry Night", "Ear", "Post-Impressionism", "Dutch"] },
+      { main: "Mona Lisa", forbidden: ["Painting", "Leonardo", "Smile", "Da Vinci", "Louvre"] },
+      { main: "Netflix", forbidden: ["Streaming", "Shows", "Movies", "Subscription", "Binge"] },
+      { main: "Soccer", forbidden: ["Football", "Goal", "FIFA", "World Cup", "Kick"] },
+      { main: "Pablo Picasso", forbidden: ["Artist", "Cubism", "Painter", "Spanish", "Guernica"] },
+      { main: "The White House", forbidden: ["President", "Washington", "DC", "Oval Office", "Government"] },
+      { main: "Kanye West", forbidden: ["Rapper", "Yeezy", "Taylor Swift", "Fashion", "Producer"] },
+      { main: "Ice Cream", forbidden: ["Cold", "Dessert", "Sweet", "Cone", "Vanilla"] },
+      { main: "Walt Disney", forbidden: ["Mickey Mouse", "Animation", "Studio", "Theme Park", "Founder"] },
+      { main: "Game of Thrones", forbidden: ["TV", "Dragons", "Winter", "Throne", "HBO"] },
+      { main: "Las Vegas", forbidden: ["Casino", "Nevada", "Gambling", "Strip", "Shows"] },
+      { main: "Lionel Messi", forbidden: ["Soccer", "Argentina", "Barcelona", "Goal", "Ballon d'Or"] },
+      { main: "Sherlock Holmes", forbidden: ["Detective", "London", "Watson", "Mystery", "Baker Street"] },
+      { main: "Billie Eilish", forbidden: ["Singer", "Pop", "Green Hair", "Bad Guy", "Grammy"] },
+      { main: "Lexi", forbidden: ["Skateboard", "Grow-A-Garden", "Annabelle", "Golfing", "Funny"] },
+      { main: "Nick", forbidden: ["Nickle Pop", "Faith West", "Sam's Club", "Up-Stairs", "Gourd"] },
+      { main: "Amazon", forbidden: ["Online", "Shopping", "Prime", "Jeff Bezos", "Delivery"] },
+      { main: "Shari", forbidden: ["Mom", "John", "Loving", "Birth", "Cheryl"] },
+      { main: "Ninny", forbidden: ["Jobs", "Funny", "Dirty Mind", "Aunt", "Rick"] },
+      { main: "Beyoncé", forbidden: ["Singer", "Destiny's Child", "Queen B", "R&B", "Formation"] },
+      { main: "Jake", forbidden: ["Favorite Child", "Anxious", "Gamer", "Dead By Daylight/Baddies", "Big Brother"] },
+      { main: "Instagram", forbidden: ["Social Media", "Photos", "Followers", "Stories", "App"] },
+      { main: "Google", forbidden: ["Search", "Internet", "Alphabet", "Maps", "Browser"] },
+      { main: "Fortnite", forbidden: ["Game", "Battle Royale", "Epic", "Building", "Victory"] },
+      { main: "Donald Trump", forbidden: ["President", "USA", "Orange", "Real Estate", "Republican"] },
+      { main: "Star Wars", forbidden: ["Movie", "Lightsaber", "Jedi", "Force", "Space"] },
+      { main: "Facebook", forbidden: ["Social Media", "Mark Zuckerberg", "Like", "Friends", "App"] },
+      { main: "Minecraft", forbidden: ["Game", "Blocks", "Build", "Survival", "Creeper"] },
+      { main: "Samantha", forbidden: ["Gamer", "Sister", "Shari/Mom", "California", "Missed"] },
+      { main: "Levi", forbidden: ["Teacher", "*No Kid Names*", "Courtney", "Smart", "Husband"] },
+      { main: "Red Dead Redemption 2", forbidden: ["Game", "Cowboy", "Western", "Rockstar", "Horse"] },
+      { main: "Frozen", forbidden: ["Movie", "Disney", "Elsa", "Ice", "Song"] },
+      { main: "Rick", forbidden: ["Brookie D", "Ninny", "Funny", "Tattoos", "Amazon"] },
+      { main: "Twitter", forbidden: ["Social Media", "Tweets", "Bird", "Hashtag", "Elon Musk"] },
+      { main: "Owen", forbidden: ["Uncle Tom", "British", "Sam", "Piercing", "UK"] },
+      { main: "Nintendo", forbidden: ["Game", "Mario", "Switch", "Console", "Zelda"] },
+      { main: "John", forbidden: ["Funny", "Arizona", "DJ", "Mom", "Caring"] },
+      { main: "Courtney", forbidden: ["Wine", "Durr/Funny", "*No Kid Names*", "Levi", "Favorite Sibling"] },
+      { main: "Chickasha", forbidden: ["Chicken Express", "Chicks", "Verden", "Oklahoma", "Anadarko"] },
+      { main: "Justin Bieber", forbidden: ["Singer", "Baby", "Pop", "Canada", "Music"] },
+      { main: "Elon Musk", forbidden: ["Tesla", "SpaceX", "Racist", "Electric", "Rocket"] },
+      { main: "Lafayette", forbidden: ["Home", "Indiana", "Faith", "West", "Corn"] },
+      { main: "Joe Biden", forbidden: ["President", "USA", "Democrat", "2020", "White House"] },
+  { main: "Nancy Pelosi", forbidden: ["Speaker", "House", "Democrat", "Congress", "California"] },
+  { main: "Mitch McConnell", forbidden: ["Senate", "Republican", "Kentucky", "(ex) Leader", "Filibuster"] },
+  { main: "Supreme Court", forbidden: ["Justices", "Judicial", "Constitution", "Court", "Nine"] },
+  { main: "Democratic Party", forbidden: ["Blue", "Left", "Biden", "Progressive", "Donkey"] },
+  { main: "Republican Party", forbidden: ["Red", "Right", "Trump", "Conservative", "Elephant"] },
+  { main: "Impeachment", forbidden: ["President", "Congress", "Trial", "Remove", "Charges"] },
+  { main: "Capitol Hill", forbidden: ["Congress", "Washington", "Building", "Senate", "House"] },
+  { main: "Election", forbidden: ["Vote", "President", "Ballot", "Campaign", "Democracy"] },
+  { main: "Senate", forbidden: ["Congress", "States", "Legislature", "100", "Members"] },
+  { main: "House of Representatives", forbidden: ["Congress", "435", "Districts", "Speaker", "Legislature"] },
+  { main: "White House", forbidden: ["President", "Washington", "Oval Office", "Residence", "Executive"] },
+  { main: "Joe Manchin", forbidden: ["Senator", "West Virginia", "Democrat", "Centrist", "Filibuster"] },
+  { main: "Voting Rights", forbidden: ["Election", "Ballot", "Access", "Discrimination", "Laws"] },
+  { main: "Supreme Court Justice", forbidden: ["Judge", "Lifetime", "Appointment", "Court", "Ruth Bader Ginsburg"] },
+  { main: "Filibuster", forbidden: ["Senate", "Delay", "Obstruction", "Vote", "Procedure"] },
+  { main: "FBI", forbidden: ["Federal", "Investigation", "Law Enforcement", "Justice", "Agency"] },
+  { main: "CIA", forbidden: ["Intelligence", "Spy", "Agency", "Central", "Secret"] },
+  { main: "Capitol Riot", forbidden: ["January 6", "Insurrection", "2021", "Protest", "Congress"] },
+  { main: "Vladimir Putin", forbidden: ["Russia", "President", "Kremlin", "Ukraine", "Leader"] },
+  { main: "Volodymyr Zelenskyy", forbidden: ["Putin", "War", "Ukraine", "Invasion", "Russia"] },
+  { main: "Climate Change", forbidden: ["Global Warming", "Environment", "Carbon", "Pollution", "Earth"] },
+  { main: "United Nations", forbidden: ["International", "Peace", "Organization", "Countries", "Global"] },
+  { main: "Congress", forbidden: ["Senate", "House", "Legislation", "Capitol", "Law"] },
+  { main: "Affordable Care Act", forbidden: ["ObamaCare", "Health", "Insurance", "Law", "Healthcare"] },
+  { main: "Black Lives Matter", forbidden: ["Protest", "Racism", "Police", "Movement", "Justice"] },
+  { main: "Gun Control", forbidden: ["Firearms", "Laws", "Second Amendment", "Safety", "Regulation"] },
+  { main: "Freedom of Speech", forbidden: ["First Amendment", "Rights", "Expression", "Censorship", "Speech"] },
+  { main: "Voter ID", forbidden: ["Identification", "Election", "Voting", "Requirements", "Law"] },
+  { main: "Electoral College", forbidden: ["President", "Vote", "USA", "States", "Election"] },
+  { main: "Capitalism", forbidden: ["Economy", "Market", "Private", "Business", "Profit"] },
+  { main: "Socialism", forbidden: ["Government", "Public", "Welfare", "Social", "Equality"] },
+  { main: "Democrat", forbidden: ["Blue", "Party", "Left", "Biden", "Progressive"] },
+  { main: "Republican", forbidden: ["Red", "Party", "Right", "Trump", "Conservative"] },
+      
+    ];
+
+    let currentTeam = "red";
+    let timerSeconds = 45;
+    let timeLeft = timerSeconds;
+    let timerId = null;
+    let currentWord = null;
+    let remainingWords = [...wordPairs];
+
+    const teamRedEl = document.getElementById("teamRed");
+    const teamBlueEl = document.getElementById("teamBlue");
+    const scoreRedEl = document.getElementById("scoreRed");
+    const scoreBlueEl = document.getElementById("scoreBlue");
+    const mainWordEl = document.getElementById("mainWord");
+    const forbiddenListEl = document.getElementById("forbiddenList");
+    const timerDisplayEl = document.getElementById("timerDisplay");
+    const newWordBtn = document.getElementById("newWordBtn");
+    const correctBtn = document.getElementById("correctBtn");
+    const passBtn = document.getElementById("passBtn");
+
+    function setActiveTeam(team) {
+      currentTeam = team;
+      if (team === "red") {
+        teamRedEl.classList.add("active");
+        teamRedEl.setAttribute("aria-pressed", "true");
+        teamBlueEl.classList.remove("active");
+        teamBlueEl.setAttribute("aria-pressed", "false");
+      } else {
+        teamBlueEl.classList.add("active");
+        teamBlueEl.setAttribute("aria-pressed", "true");
+        teamRedEl.classList.remove("active");
+        teamRedEl.setAttribute("aria-pressed", "false");
+      }
+    }
+
+    teamRedEl.addEventListener("click", () => setActiveTeam("red"));
+    teamBlueEl.addEventListener("click", () => setActiveTeam("blue"));
+
+    teamRedEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setActiveTeam("red");
+      }
+    });
+    teamBlueEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        setActiveTeam("blue");
+      }
+    });
+
+    function updateTimerDisplay(seconds) {
+      let m = Math.floor(seconds / 60);
+      let s = seconds % 60;
+      timerDisplayEl.textContent = `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`; 
+    }
+
+    function startTimer() {
+      if (timerId) return; // no more multiple timers :D, should also fix issue 2? 
+
+      updateTimerDisplay(timeLeft);
+      timerId = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay(timeLeft);
+        if (timeLeft <= 0) {
+          clearInterval(timerId);
+          timerId = null;
+          endRound();
+        }
+      }, 1000);
+    }
+
+    function pickRandomWord() {
+      if (remainingWords.length === 0) {
+        remainingWords = [...wordPairs];
+      }
+      const index = Math.floor(Math.random() * remainingWords.length);
+      const word = remainingWords[index];
+      remainingWords.splice(index, 1);
+      return word;
+    }
+
+    function showWord(word) {
+      mainWordEl.textContent = word.main;
+      forbiddenListEl.textContent = "Forbidden clues: " + word.forbidden.join(", ");
+    }
+
+    function newWordRound() {
+      if (!timerId) {
+        timeLeft = timerSeconds;
+        startTimer();
+      }
+      currentWord = pickRandomWord();
+      showWord(currentWord);
+      newWordBtn.disabled = true;
+      correctBtn.disabled = false;
+      passBtn.disabled = false;
+    }
+
+    function passWord() {
+      currentWord = pickRandomWord();
+      showWord(currentWord);
+      // please fucking work my god
+    }
+
+    function endRound() {
+      newWordBtn.disabled = false;
+      correctBtn.disabled = true;
+      passBtn.disabled = true;
+      mainWordEl.textContent = "Time's up! Press “New Word” to start again.";
+      forbiddenListEl.textContent = "Forbidden clues: —";
+      timerDisplayEl.textContent = "00:00";
+    }
+
+    function addPoint() {
+      if (currentTeam === "red") {
+        scoreRedEl.textContent = parseInt(scoreRedEl.textContent) + 1;
+      } else {
+        scoreBlueEl.textContent = parseInt(scoreBlueEl.textContent) + 1;
+      }
+      currentWord = pickRandomWord();
+      showWord(currentWord);
+      // timer might not run, but this will make it pick it regardless.  
+    }
+
+    // updated 2.1
+    newWordBtn.addEventListener("click", () => {
+      newWordRound();
+    });
+
+    correctBtn.addEventListener("click", () => {
+      addPoint();
+    });
+
+    passBtn.addEventListener("click", () => {
+      passWord();
+    });
+
+    // init
+    setActiveTeam("red");
+    updateTimerDisplay(timerSeconds);
+  </script>
+</body>
+</html>
